@@ -22,6 +22,8 @@
 import argparse
 import csv
 from tabulate import tabulate
+import math
+
 
 def parse_where(where_str):
     if '>' in where_str:
@@ -66,7 +68,14 @@ def filter_rows(rows, column, operator, value):
 
 def aggregate_column(rows, column, operation):
     try:
-        values = [float(row[column]) for row in rows]
+        values = []
+        for row in rows:
+            val = float(row[column])
+            if math.isnan(val):
+                continue
+            values.append(val)
+        if not values:
+            return []
         if operation == 'avg':
             result = sum(values) / len(values)
         elif operation == 'min':
@@ -87,10 +96,10 @@ def main():
     parser.add_argument('--aggregate')
 
     args = parser.parse_args()
-
+    
     with open(args.file, encoding='utf-8') as f:
         rows = list(csv.DictReader(f))
-
+    
     if args.where:
         col, op, val = parse_where(args.where)
         rows = filter_rows(rows, col, op, val)
